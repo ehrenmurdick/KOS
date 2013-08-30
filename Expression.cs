@@ -25,6 +25,8 @@ namespace kOS
             return e.GetValue().ToString();
         }
 
+        public Expression() { }
+
         public Expression(String text, ExecutionContext context)
         {
             this.executionContext = context;

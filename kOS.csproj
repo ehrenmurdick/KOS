@@ -79,6 +79,8 @@
     <Compile Include="Utils.cs" />
     <Compile Include="Variable.cs" />
     <Compile Include="Volume.cs" />
+    <Compile Include="CommandPid.cs" />
+    <Compile Include="PidController.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="VesselUtils.cs" />

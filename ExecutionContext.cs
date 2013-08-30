@@ -34,6 +34,7 @@ namespace kOS
         public virtual List<Volume> Volumes { get { return ParentContext != null ? ParentContext.Volumes : null; } }
         public virtual Dictionary<String, Variable> Variables { get { return ParentContext != null ? ParentContext.Variables : null; } }
         public Dictionary<String, Expression> Locks = new Dictionary<string, Expression>();
+        public Dictionary<String, PidController> PidLocks = new Dictionary<string, PidController>();
         public List<Command> CommandLocks = new List<Command>();
 
         public ExecutionContext()
@@ -84,6 +85,13 @@ namespace kOS
             {
                 command.Update(time);
             }
+
+            foreach (KeyValuePair<string, PidController> pair in new Dictionary<string, PidController>(PidLocks))
+            {
+                String varname = pair.Key;
+                PidController controller = pair.Value;
+                controller.Update(time);
+            }
             
             if (ChildContext != null)
             {
@@ -124,6 +132,11 @@ namespace kOS
             if (v != null && Locks.ContainsKey(varName))
             {
                 v.Value = Locks[varName].GetValue();
+            }
+
+            if (v != null && PidLocks.ContainsKey(varName))
+            {
+                v.Value = PidLocks[varName].GetValue();
             }
 
             return v;
@@ -210,6 +223,10 @@ namespace kOS
             {
                 return Locks[name];
             }
+            else if (PidLocks.ContainsKey(name))
+            {
+                return PidLocks[name];
+            }
             else
             {
                 return ParentContext == null ? null : ParentContext.GetLock(name);
@@ -219,6 +236,16 @@ namespace kOS
         public virtual void Lock(Command command)
         {
             CommandLocks.Add(command);
+        }
+
+        public virtual void Lock(String name, PidController controller)
+        {
+            FindOrCreateVariable(name);
+
+            if (!PidLocks.ContainsKey(name))
+            {
+                PidLocks.Add(name, controller);
+            }
         }
 
         public virtual void Lock(String name, Expression expression)
@@ -231,6 +258,8 @@ namespace kOS
             }
         }
 
+
+
         public virtual void Unlock(Command command)
         {
             CommandLocks.Remove(command);
@@ -242,6 +271,10 @@ namespace kOS
             if (Locks.ContainsKey(name))
             {
                 Locks.Remove(name);
+            }
+            else if (PidLocks.ContainsKey(name))
+            {
+                PidLocks.Remove(name);
             }
             else if (ParentContext != null)
             {
